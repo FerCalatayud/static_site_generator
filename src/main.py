@@ -1,14 +1,10 @@
 from textnode import TextNode
 from htmlnode import HTMLNode, LeafNode
+from helper import split_nodes_delimiter
 
 def main():
-    """tn = TextNode("Hellow, world!", "bold", "localhost:8888")
-    print(tn)
+    text = "This is text with an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and ![another](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/dfsdkjfd.png)"
 
-    hn = HTMLNode(props={"href": "https://www.google.com", "target": "_blank"})
-    print(hn.props_to_html())
-    hn.__repr__()"""
-
-    lm = LeafNode()
+    #[("image", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png"), ("another", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/dfsdkjfd.png")]
 
 main()

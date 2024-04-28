@@ -4,7 +4,7 @@ from enum import Enum
 import re
 
 class TextNodeType(Enum):
-    TEXT = "txt"
+    TEXT = "text"
     BOLD = "bold"
     ITALIC = "italic"
     CODE = "code"
@@ -92,8 +92,12 @@ def split_nodes_image(old_nodes):
 
         for img in image_tuples:
             node_splited = text_to_split.split(f"![{img[0]}]({img[1]})", 1)
+            if len(node_splited) != 2:
+                raise ValueError("Invalid markdown, image section not closed")
+            
             new_text_node = node_splited[0]
             text_to_split = node_splited[1]
+
 
             if new_text_node != "":
                 new_nodes.append(TextNode(new_text_node, "text"))
@@ -108,7 +112,6 @@ def split_nodes_image(old_nodes):
         
 def split_nodes_link(old_nodes):
     new_nodes = []
-    
 
     for node in old_nodes:
 
@@ -141,3 +144,22 @@ def split_nodes_link(old_nodes):
             new_nodes.append(TextNode(text_to_split, "text"))
         
     return new_nodes
+
+def text_to_textnodes(text):
+    nodes = [TextNode(text, "text")]
+
+    for item in TextNodeType:
+        if item.value == "text":
+            continue
+        elif item.value == "bold":
+            nodes = split_nodes_delimiter(nodes, "**", item.value)
+        elif item.value == "italic":
+            nodes = split_nodes_delimiter(nodes, "*", item.value)
+        elif item.value == "code":
+            nodes = split_nodes_delimiter(nodes, "`", item.value)
+        elif item.value == "link":
+            nodes = split_nodes_image(nodes)
+        elif item.value == "image":
+            nodes = split_nodes_link(nodes)
+    
+    return nodes

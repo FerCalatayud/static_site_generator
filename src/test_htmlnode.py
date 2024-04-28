@@ -2,7 +2,7 @@ import unittest
 
 from htmlnode import HTMLNode, LeafNode, ParentNode
 from textnode import TextNode
-from helper import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link
+from helper import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes
 
 
 class TestHTMLNode(unittest.TestCase):
@@ -317,6 +317,11 @@ class TestHTMLNode(unittest.TestCase):
 
         self.assertEqual(matches, expected_result)
 
+    # TODO
+    # it might be missing a test for when the image tag is not closed but I already tried and didn't find
+    # a case where that happens. The solution does test for ir in the code but don't know when that is the case becase
+    # the function that substracts the images would not return the images and there fore never get to that case in code.
+
     # =================================================================
     # ------------ TEST helper functions SPLIT LINK NODES ------------
     # =================================================================
@@ -340,6 +345,60 @@ class TestHTMLNode(unittest.TestCase):
 ]
 
         self.assertEqual(matches, expected_result)
+
+    # =================================================================
+    # ------------ TEST helper functions CONVERT MARKDOWN TEXT INTO NODES ------------
+    # =================================================================
+
+    def test_text_to_textnodes(self):
+        text = "This is **text** with an *italic* word and a `code block` and an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and a [link](https://boot.dev)"
+        
+        expected_result = [
+                    TextNode("This is ", "text"),
+                    TextNode("text", "bold"),
+                    TextNode(" with an ", "text"),
+                    TextNode("italic", "italic"),
+                    TextNode(" word and a ", "text"),
+                    TextNode("code block", "code"),
+                    TextNode(" and an ", "text"),
+                    TextNode("image", "image", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png"),
+                    TextNode(" and a ", "text"),
+                    TextNode("link", "link", "https://boot.dev"),
+                ]
+
+
+        nodes = text_to_textnodes(text)
+
+        self.assertEqual(nodes, expected_result)
+    
+    def test_text_to_textnodes_2(self):
+        text = "This is **text** with an *italic* word *and* a `code block` and an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and a [link](https://boot.dev)"
+        
+        expected_result = [
+                    TextNode("This is ", "text"),
+                    TextNode("text", "bold"),
+                    TextNode(" with an ", "text"),
+                    TextNode("italic", "italic"),
+                    TextNode(" word ", "text"),
+                    TextNode("and", "italic"),
+                    TextNode(" a ", "text"),
+                    TextNode("code block", "code"),
+                    TextNode(" and an ", "text"),
+                    TextNode("image", "image", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png"),
+                    TextNode(" and a ", "text"),
+                    TextNode("link", "link", "https://boot.dev"),
+                ]
+
+
+        nodes = text_to_textnodes(text)
+
+        self.assertEqual(nodes, expected_result)
+
+    def test_text_to_textnodes_3(self):
+        text = "This is **text* with an *italic* word *and* a `code block` and an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and a [link](https://boot.dev)"
+
+        with self.assertRaises(ValueError):       
+            text_to_textnodes(text)
 
 if __name__ == "__main__":
     unittest.main()

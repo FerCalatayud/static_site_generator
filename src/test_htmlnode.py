@@ -2,7 +2,9 @@ import unittest
 
 from htmlnode import HTMLNode, LeafNode, ParentNode
 from textnode import TextNode
-from helper import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes
+from helper import (split_nodes_delimiter, extract_markdown_images, extract_markdown_links, 
+                    split_nodes_image, split_nodes_link, text_to_textnodes,
+                    markdown_to_blocks, block_to_block_type)
 
 
 class TestHTMLNode(unittest.TestCase):
@@ -399,6 +401,95 @@ class TestHTMLNode(unittest.TestCase):
 
         with self.assertRaises(ValueError):       
             text_to_textnodes(text)
+
+    def test_markdown_to_blocks(self):
+        markdown_text = "This is **bolded** paragraph\n\nThis is another paragraph with *italic* text and `code` here\nThis is the same paragraph on a new line\n\n* This is a list\n* with items"
+
+        expected_result = ["This is **bolded** paragraph\n", 
+                           "This is another paragraph with *italic* text and `code` here\nThis is the same paragraph on a new line\n",
+                           "* This is a list\n* with items"]
+
+        blocks = markdown_to_blocks(markdown_text)
+
+        self.assertEqual(blocks, expected_result)
+
+    def test_markdown_to_blocks_2(self):
+        markdown_text = "This is **bolded** paragraph\n\n\n\nThis is another paragraph with *italic* text and `code` here\nThis is the same paragraph on a new line\n\n* This is a list\n* with items"
+
+        expected_result = ["This is **bolded** paragraph\n", 
+                           "This is another paragraph with *italic* text and `code` here\nThis is the same paragraph on a new line\n",
+                           "* This is a list\n* with items"]
+
+        blocks = markdown_to_blocks(markdown_text)
+
+        self.assertEqual(blocks, expected_result)
+
+    # =================================================================
+    # ------------ TEST helper functions CHECK THE BLOCK TYPE ------------
+    # =================================================================
+
+    def test_block_to_block_type(self):
+        block = "* This is a list\n* with items"
+        
+        expected_result = "unordered_list"
+
+        actual_result = block_to_block_type(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_block_to_block_type_2(self):
+        block = "* This is a list\n with items"
+        
+        expected_result = "paragraph"
+
+        actual_result = block_to_block_type(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_block_to_block_type_3(self):
+        block = "#### This is a list with items"
+        
+        expected_result = "heading"
+
+        actual_result = block_to_block_type(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_block_to_block_type_4(self):
+        block = "> This is a list with items"
+        
+        expected_result = "quote"
+
+        actual_result = block_to_block_type(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_block_to_block_type_5(self):
+        block = "```This is a list with items\nwith code```"
+        
+        expected_result = "code"
+
+        actual_result = block_to_block_type(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_block_to_block_type_6(self):
+        block = "1. This is a list\n2. with items\n3. and items"
+        
+        expected_result = "ordered_list"
+
+        actual_result = block_to_block_type(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_block_to_block_type_7(self):
+        block = "1. This is a list\n3. with items\n3. and items"
+        
+        expected_result = "paragraph"
+
+        actual_result = block_to_block_type(block)
+
+        self.assertEqual(actual_result, expected_result)
 
 if __name__ == "__main__":
     unittest.main()

@@ -11,6 +11,14 @@ class TextNodeType(Enum):
     LINK = "link"
     IMAGE = "image"
 
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODE = "code"
+    QUOTE = "quote"
+    UNORDERED_LIST = "unordered_list"
+    ORDERED_LIST = "ordered_list"
+
 def text_node_to_html_node(text_node):
     if text_node.text_type == TextNodeType.TEXT:
         return LeafNode(text_node.text)
@@ -163,3 +171,47 @@ def text_to_textnodes(text):
             nodes = split_nodes_link(nodes)
     
     return nodes
+
+def markdown_to_blocks(markdown_text):
+
+    blocks = list(map(lambda s: s.strip(), filter(lambda s: s if len(s) > 0 else False, markdown_text.split("\n\n"))))
+
+    total_blocks = len(blocks)
+
+    for indx in range(0, total_blocks):
+        if indx < total_blocks - 1:
+            blocks[indx] += "\n"
+
+    return blocks
+
+def block_to_block_type(block):
+
+    lines = block.split("\n")
+
+    if re.findall(r"^(#{1,6}\s)", block):
+        return BlockType.HEADING.value
+    if len(lines) > 1 and lines[0].startswith("```") and lines[-1].endswith("```"):
+        return BlockType.CODE.value
+    if block.startswith(">"):
+        for line in lines:
+            if not line.startswith(">"):
+                return BlockType.PARAGRAPH.value
+        return BlockType.QUOTE.value
+    if block.startswith("* "):
+        for line in lines:
+            if not line.startswith("* "):
+                return BlockType.PARAGRAPH.value
+        return BlockType.UNORDERED_LIST.value
+    if block.startswith("- "):
+        for line in lines:
+            if not line.startswith("- "):
+                return BlockType.PARAGRAPH.value
+        return BlockType.UNORDERED_LIST.value
+    if block.startswith("1. "):
+        i = 1
+        for line in lines:
+            if not line.startswith(f"{i}. "):
+                return BlockType.PARAGRAPH.value
+            i += 1
+        return BlockType.ORDERED_LIST.value
+    return BlockType.PARAGRAPH.value

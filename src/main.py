@@ -1,18 +1,18 @@
 from textnode import TextNode
 from htmlnode import HTMLNode, LeafNode
-from helper import split_nodes_delimiter, text_to_textnodes
+from helper import split_nodes_delimiter, text_to_textnodes, markdown_to_blocks
 
 def main():
-    text = "This is **text** with an *italic* word and a `code block` and an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and a [link](https://boot.dev)"
+    markdown_text = "This is **bolded** paragraph\n\nThis is another paragraph with *italic* text and `code` here\nThis is the same paragraph on a new line\n\n* This is a list\n* with items"
 
-    nodes = text_to_textnodes(text)
+    blocks = markdown_to_blocks(markdown_text)
 
     print(f"------------- Here is my printing -------------")
 
-    print(f"{len(nodes)}")
+    print(f"{len(blocks)}")
     
-    for node in nodes:
-        print(f"Node ---->TYPE:{node.text_type} \nTEXT:{node.text}<----")
+    for b in blocks:
+        print(f"{b}")
 
     print(f"------------- Here is my printing -------------")
 

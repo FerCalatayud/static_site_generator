@@ -1,7 +1,9 @@
-from htmlnode import LeafNode
+from htmlnode import LeafNode, HTMLNode, ParentNode
 from textnode import TextNode
 from enum import Enum
 import re
+import os
+import shutil
 
 class TextNodeType(Enum):
     TEXT = "text"
@@ -215,3 +217,179 @@ def block_to_block_type(block):
             i += 1
         return BlockType.ORDERED_LIST.value
     return BlockType.PARAGRAPH.value
+
+def paragraph_block_to_html(block):
+    
+    text_nodes = []
+    html_nodes = []
+
+    block_type = block_to_block_type(block)
+    if block_type != "paragraph":
+            raise ValueError("Wrong type block for this function")
+
+    lines_in_block = block.split("\n")
+
+    for line in lines_in_block:        
+        formated_line = line.strip()
+        text_nodes.append(text_to_textnodes(formated_line))
+    
+    for node in text_nodes:
+       html_nodes.append(text_node_to_html_node(node))
+
+    return ParentNode(tag="p", children=html_nodes)
+
+def heading_block_to_html(block):
+
+    heading_symbol = re.search(r"^(#{1,6}\s)", block).strip()
+
+    if not heading_symbol:
+        raise ValueError("Wrong type block for this function")
+        
+    formated_line = re.sub(r"^(#{1,6}\s)", "", block).strip()
+    text_node = text_to_textnodes(formated_line)
+
+    html_node = text_node_to_html_node(text_node)
+
+    return ParentNode(tag=f"h{len(heading_symbol)}", children=html_node)
+
+def code_block_to_html(block):
+    lines_in_block = block.split("\n")
+    text_nodes = []
+    html_nodes = []
+        
+    if len(lines_in_block) > 1 and lines_in_block[0].startswith("```") and lines_in_block[-1].endswith("```"):
+        for line in lines_in_block:
+                formated_line = line.strip("```").strip()
+                text_nodes.append(text_to_textnodes(formated_line))
+
+    else:
+        raise ValueError("Wrong type block for this function")
+    
+    for node in text_nodes:
+       html_nodes.append(text_node_to_html_node(node))
+
+    code_html = ParentNode(tag="code", children=html_nodes)
+
+    return ParentNode(tag="pre", children=code_html)
+
+def quote_block_to_html(block):
+    
+    lines_in_block = block.split("\n")
+    text_nodes = []
+    html_nodes = []
+
+    for line in lines_in_block:
+        if not line.startswith(">"):
+            raise ValueError("Wrong type block for this function")
+        
+        formated_line = line.lstrip(">").strip()
+        text_nodes.append(text_to_textnodes(formated_line))
+    
+    for node in text_nodes:
+       html_nodes.append(text_node_to_html_node(node))
+
+    return ParentNode(tag="blockquote", children=html_nodes)
+
+def unordered_list_block_to_html(block):
+    
+    lines_in_block = block.split("\n")
+    text_nodes = []
+    html_nodes = []
+
+    for line in lines_in_block:
+        if not line.startswith("* "):
+            raise ValueError("Wrong type block for this function")
+        
+        formated_line = line.lstrip("*").strip()
+        text_nodes.append(text_to_textnodes(formated_line))
+
+
+
+    for node in text_nodes:
+       html_node = text_node_to_html_node(node)
+       html_nodes.append(ParentNode(tag="li", children=[html_node]))
+
+    return ParentNode(tag="ul", children=html_nodes)
+
+def ordered_list_block_to_html(block):
+    
+    lines_in_block = block.split("\n")
+    text_nodes = []
+    html_nodes = []
+
+    for indx in range(0, len(lines_in_block)):
+        if not lines_in_block[indx].startswith(f"{indx + 1}. "):
+            raise ValueError("Wrong type block for this function")
+        
+        formated_line = lines_in_block[indx].lstrip(f"{indx + 1}. ").strip()
+        text_nodes.append(text_to_textnodes(formated_line))
+
+
+
+    for node in text_nodes:
+       html_node = text_node_to_html_node(node)
+       html_nodes.append(ParentNode(tag="li", children=[html_node]))
+
+    return ParentNode(tag="ol", children=html_nodes)
+
+def block_to_html(block):
+    block_type = block_to_block_type(block)
+    if block_type == "paragraph":
+        return paragraph_block_to_html(block)
+    if block_type == "heading":
+        return heading_block_to_html(block)
+    if block_type == "code":
+        return code_block_to_html(block)
+    if block_type == "quote":
+        return quote_block_to_html(block)
+    if block_type == "unordered_list":
+        return unordered_list_block_to_html(block)
+    if block_type == "ordered_list":
+        return ordered_list_block_to_html(block)
+    raise ValueError("Wrong block type")
+
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+
+    html_nodes = []
+
+    for block in blocks:
+        html_nodes.append(block_to_html(block))
+    
+    return ParentNode("div", children=html_nodes)
+
+def move_all_content(path_to_copy, path_to_paste):
+    print(f"======= Copy fiels and dirs from ----->{path_to_copy}<----- to ------>{path_to_paste}<------- =======")
+    if not os.path.exists(path_to_copy):
+        raise ValueError("Path provided doesn't exist")
+    
+    if not os.path.exists(path_to_paste):
+        print(f"----> Creating dir ---->{path_to_paste}")
+        os.mkdir(path_to_paste)
+
+    dirs_to_copy = os.listdir(path_to_copy)
+    print(f"----> On ---->{path_to_copy}<--- list of dirs and files --->{dirs_to_copy}")
+
+    for dir in dirs_to_copy:
+        current_dirs_to_copy = os.path.join(path_to_copy, dir)
+        current_dir_to_paste = os.path.join(path_to_paste, dir)
+        print(f"----> ON dir ---->{current_dirs_to_copy}")
+        if os.path.isfile(current_dirs_to_copy):
+            shutil.copy(current_dirs_to_copy, current_dir_to_paste)
+            print(f"----> Copied file ----> {dir} <----- from ---->{current_dirs_to_copy}<--- to --->{current_dir_to_paste}")
+            
+        else:
+            print(f"----> Recursion from ------>{path_to_copy}<------- to  ------>{current_dirs_to_copy}<-------")
+            move_all_content(current_dirs_to_copy, current_dir_to_paste)
+
+    shutil.rmtree(path_to_copy)
+    
+def extract_title(markdown):
+    title_line = markdown.split("\n")[0]
+    if re.search(r"^(#{1,6}\s)", title_line):
+        return title_line
+    else:
+        raise ValueError("This markdown page doesn't have a title")
+
+def generate_page(from_path, template_path, dest_path):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")

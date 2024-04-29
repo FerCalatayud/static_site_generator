@@ -4,7 +4,7 @@ from htmlnode import HTMLNode, LeafNode, ParentNode
 from textnode import TextNode
 from helper import (split_nodes_delimiter, extract_markdown_images, extract_markdown_links, 
                     split_nodes_image, split_nodes_link, text_to_textnodes,
-                    markdown_to_blocks, block_to_block_type)
+                    markdown_to_blocks, block_to_block_type, extract_title)
 
 
 class TestHTMLNode(unittest.TestCase):
@@ -490,6 +490,28 @@ class TestHTMLNode(unittest.TestCase):
         actual_result = block_to_block_type(block)
 
         self.assertEqual(actual_result, expected_result)
+
+    # =================================================================
+    # ------------ TEST helper functions CHECK IF MARKDOWN HAS TITLE ------------
+    # =================================================================
+
+    def test_markdown_has_title(self):
+        markdown = """###### The Unparalleled Majesty of "The Lord of the Rings"
+
+                        [Back Home](/)
+
+                        ![LOTR image artistmonkeys](/images/rivendell.png)
+
+                        > "I cordially dislike allegory in all its manifestations, and always have done so since I grew old and wary enough to detect its presence.
+                        > I much prefer history, true or feigned, with its varied applicability to the thought and experience of readers.
+                        > I think that many confuse 'applicability' with 'allegory'; but the one resides in the freedom of the reader, and the other in the purposed domination of the author."
+                        """
+        
+        expected_result = '###### The Unparalleled Majesty of "The Lord of the Rings"'
+
+        result = extract_title(markdown)
+
+        self.assertEqual(result, expected_result)
 
 if __name__ == "__main__":
     unittest.main()

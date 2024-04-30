@@ -404,11 +404,6 @@ def generate_page(from_path, template_path, dest_path):
     # Print the action to do on this program
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
-    # go up a dir from src
-    #from_path = f"../{from_path}"
-    #dest_path = f"../{dest_path}"
-    #template_path = f"../{template_path}"
-
     # open the markdown file
     with open(from_path) as markdown_file:
         file_markdown = markdown_file.read()
@@ -437,4 +432,61 @@ def generate_page(from_path, template_path, dest_path):
         index_file.write(new_html)
 
     print("JOB DONE, THANKS FOR TRUSTING ME WITH THE WORK.")
+
+def generate_pages_recursive(from_path, template_path, dest_path):
+    # Print the action to do on this program
+    print(f"Generating pages from {from_path} to {dest_path} using {template_path}")
+
+    if not os.path.exists(from_path):
+        raise ValueError("Path provided doesn't exist")
     
+    if not os.path.exists(dest_path):
+        print(f"----> Creating dir ---->{dest_path}")
+        os.mkdir(dest_path)
+
+    dirs_and_files_to_convert = os.listdir(from_path)
+    #print(f"----> On ---->{from_path}<--- list of dirs and files --->{dirs_to_copy}")
+
+    for item in dirs_and_files_to_convert:
+        current_item_to_convert = os.path.join(from_path, item)
+        current_item_to_paste = os.path.join(dest_path, item)
+        print(f"----> ON item ---->{current_item_to_convert}")
+        if os.path.isfile(current_item_to_convert):
+            #shutil.copy(current_item_to_convert, current_item_to_paste)
+            # open the markdown file
+            with open(current_item_to_convert) as markdown_file:
+                file_markdown = markdown_file.read()
+        
+            # open the template file
+            with open(template_path) as template_file:
+                file_template = template_file.read()
+
+            # convert markdown to html nodes
+            makrdown_html = markdown_to_html_node(file_markdown)
+            makrdown_html_string= makrdown_html.to_html()
+
+            # extract title
+            page_title = extract_title(file_markdown)
+
+            # replace title and content on template
+            new_html = file_template.replace("{{ Title }}", page_title)
+            new_html = new_html.replace("{{ Content }}", makrdown_html_string)
+
+            # write the html stirng into a file on dest_path and create the necesary directories
+            dest_path_dir = os.path.dirname(current_item_to_paste)
+            if dest_path_dir != "":
+                os.makedirs(dest_path_dir, exist_ok=True)
+
+            # remove the .md file extension and add the .html before file creation
+            current_file_to_paste = current_item_to_paste[:-2] + "html"
+
+            with open(current_file_to_paste, 'w') as html_file:
+                html_file.write(new_html)
+
+            print(f"----> Created file ----> {item} <----- on ---->{dest_path_dir}")
+            
+        else:
+            print(f"----> Recursion from ------>{from_path}<------- to  ------>{current_item_to_convert}<-------")
+            generate_pages_recursive(current_item_to_convert, template_path, current_item_to_paste)
+
+        print("JOB DONE, THANKS FOR TRUSTING ME WITH THE WORK.")

@@ -5,7 +5,7 @@ import shutil
 # Internal
 from textnode import TextNode
 from htmlnode import HTMLNode, LeafNode
-from helper import (move_all_content, generate_page)
+from helper import (move_all_content, generate_page, generate_pages_recursive)
 
 def main():
 
@@ -19,8 +19,10 @@ def main():
 
     move_all_content(path_static_dir, path_public_dir)
 
-    generate_page(os.path.join(path_content_dir, "index.md"), 
+    generate_pages_recursive(path_content_dir, path_template, path_public_dir)
+
+    """generate_page(os.path.join(path_content_dir, "index.md"), 
                   path_template, 
-                  os.path.join(path_public_dir, "index.html"))
+                  os.path.join(path_public_dir, "index.html"))"""
 
 main()

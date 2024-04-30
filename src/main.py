@@ -1,12 +1,26 @@
+# Python
+import os
+import shutil
+
+# Internal
 from textnode import TextNode
 from htmlnode import HTMLNode, LeafNode
-from helper import (split_nodes_delimiter, text_to_textnodes, markdown_to_blocks,
-                    move_all_content)
+from helper import (move_all_content, generate_page)
 
 def main():
-    path_to_copy = "/Users/fercalatayud/Documents/Tech/workspace/github.com/FerCalatayud/static_site_generator/static"
-    path_to_paste = "/Users/fercalatayud/Documents/Tech/workspace/github.com/FerCalatayud/static_site_generator/public"
 
-    move_all_content(path_to_copy, path_to_paste)
+    path_static_dir = "./static"
+    path_public_dir = "./public"
+    path_content_dir = "./content"
+    path_template = "./template.html"
+
+    if os.path.exists(path_public_dir):
+        shutil.rmtree(path_public_dir)
+
+    move_all_content(path_static_dir, path_public_dir)
+
+    generate_page(os.path.join(path_content_dir, "index.md"), 
+                  path_template, 
+                  os.path.join(path_public_dir, "index.html"))
 
 main()

@@ -4,7 +4,9 @@ from htmlnode import HTMLNode, LeafNode, ParentNode
 from textnode import TextNode
 from helper import (split_nodes_delimiter, extract_markdown_images, extract_markdown_links, 
                     split_nodes_image, split_nodes_link, text_to_textnodes,
-                    markdown_to_blocks, block_to_block_type, extract_title)
+                    markdown_to_blocks, block_to_block_type, extract_title,
+                    heading_block_to_html, paragraph_block_to_html, code_block_to_html,
+                    quote_block_to_html, unordered_list_block_to_html, ordered_list_block_to_html)
 
 
 class TestHTMLNode(unittest.TestCase):
@@ -405,8 +407,8 @@ class TestHTMLNode(unittest.TestCase):
     def test_markdown_to_blocks(self):
         markdown_text = "This is **bolded** paragraph\n\nThis is another paragraph with *italic* text and `code` here\nThis is the same paragraph on a new line\n\n* This is a list\n* with items"
 
-        expected_result = ["This is **bolded** paragraph\n", 
-                           "This is another paragraph with *italic* text and `code` here\nThis is the same paragraph on a new line\n",
+        expected_result = ["This is **bolded** paragraph", 
+                           "This is another paragraph with *italic* text and `code` here\nThis is the same paragraph on a new line",
                            "* This is a list\n* with items"]
 
         blocks = markdown_to_blocks(markdown_text)
@@ -416,8 +418,8 @@ class TestHTMLNode(unittest.TestCase):
     def test_markdown_to_blocks_2(self):
         markdown_text = "This is **bolded** paragraph\n\n\n\nThis is another paragraph with *italic* text and `code` here\nThis is the same paragraph on a new line\n\n* This is a list\n* with items"
 
-        expected_result = ["This is **bolded** paragraph\n", 
-                           "This is another paragraph with *italic* text and `code` here\nThis is the same paragraph on a new line\n",
+        expected_result = ["This is **bolded** paragraph",
+                           "This is another paragraph with *italic* text and `code` here\nThis is the same paragraph on a new line",
                            "* This is a list\n* with items"]
 
         blocks = markdown_to_blocks(markdown_text)
@@ -492,11 +494,170 @@ class TestHTMLNode(unittest.TestCase):
         self.assertEqual(actual_result, expected_result)
 
     # =================================================================
+    # ------------ TEST helper functions MARKDOWN TYPES TO HTML TYPES ------------
+    # =================================================================
+
+    def test_heading_block_to_html(self):
+        block = "# A Rich Tapestry of Lore"
+
+        text_node = TextNode("A Rich Tapestry of Lore", "text")
+        expected_result = ParentNode(tag="h1", 
+                                     children=[LeafNode(text_node.text)])
+
+        actual_result = heading_block_to_html(block)
+
+        self.assertEqual(actual_result, expected_result)
+    
+    def test_heading_block_to_html_2(self):
+        block = " A Rich Tapestry of Lore"
+
+        with self.assertRaises(ValueError):
+            heading_block_to_html(block)
+
+    def test_paragraph_block_to_html(self):
+        block = "A Rich Tapestry of Lore"
+
+        text_node = TextNode("A Rich Tapestry of Lore", "text")
+        expected_result = ParentNode(tag="p", 
+                                     children=[LeafNode(text_node.text)])
+
+        actual_result = paragraph_block_to_html(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_paragraph_block_to_html_2(self):
+        block = "# A Rich Tapestry of Lore"
+
+        with self.assertRaises(ValueError):
+            paragraph_block_to_html(block)
+    
+    def test_code_block_to_html(self):
+        block = "```\nA Rich Tapestry of Lore\n```"
+
+        text_node = TextNode("A Rich Tapestry of Lore", "text")
+        expected_result = ParentNode(tag="pre", children=[ParentNode(tag="code", 
+                                     children=[LeafNode(text_node.text)])])
+        
+        actual_result = code_block_to_html(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_code_block_to_html_2(self):
+        block = "# A Rich Tapestry of Lore"
+
+        with self.assertRaises(ValueError):
+            code_block_to_html(block)
+
+    def test_quote_block_to_html(self):
+        block = ">A Rich Tapestry of Lore\n>Indeed it is"
+
+        text_node = TextNode("A Rich Tapestry of Lore Indeed it is", "text")
+        expected_result = ParentNode(tag="blockquote", children=[LeafNode(text_node.text)])
+        
+        actual_result = quote_block_to_html(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_quote_block_to_html_2(self):
+        block = "# A Rich Tapestry of Lore"
+
+        with self.assertRaises(ValueError):
+            quote_block_to_html(block)
+    
+    def test_unordered_list_block_to_html(self):
+        block = "- A Rich Tapestry of Lore"
+
+        text_node = TextNode("A Rich Tapestry of Lore", "text")
+        expected_result = ParentNode(tag="ul", children=[ParentNode(tag="li", children=[LeafNode(text_node.text)])])
+        actual_result = unordered_list_block_to_html(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_unordered_list_block_to_html_2(self):
+        block = "- A Rich Tapestry of Lore\n- Indeed it is"
+
+
+        text_node = TextNode("A Rich Tapestry of Lore", "text")
+        text_node_2 = TextNode("Indeed it is", "text")
+        expected_result = ParentNode(tag="ul", children=[ParentNode(tag="li", children=[LeafNode(text_node.text)]),
+                                                         ParentNode(tag="li", children=[LeafNode(text_node_2.text)])])
+
+        actual_result = unordered_list_block_to_html(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_unordered_list_block_to_html_3(self):
+        block = "# A Rich Tapestry of Lore"
+
+        with self.assertRaises(ValueError):
+            unordered_list_block_to_html(block)
+
+    def test_unordered_list_block_to_html_4(self):
+        block = "- A **Rich** Tapestry of Lore"
+
+        text_node = TextNode("A ", "text")
+        text_node_2 = TextNode("Rich", "bold")
+        text_node_3 = TextNode(" Tapestry of Lore", "text")
+        expected_result = ParentNode(tag="ul", children=[ParentNode(tag="li", children=[LeafNode(text_node.text),
+                                                                                        LeafNode(text_node_2.text, tag="b"),
+                                                                                        LeafNode(text_node_3.text)])])
+        actual_result = unordered_list_block_to_html(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_ordered_list_block_to_html(self):
+        block = "1. A Rich Tapestry of Lore"
+
+        text_node = TextNode("A Rich Tapestry of Lore", "text")
+        expected_result = ParentNode(tag="ol", children=[ParentNode(tag="li", children=[LeafNode(text_node.text)])])
+        actual_result = ordered_list_block_to_html(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_ordered_list_block_to_html_2(self):
+        block = "1. A Rich Tapestry of Lore\n2. Indeed it is"
+
+
+        text_node = TextNode("A Rich Tapestry of Lore", "text")
+        text_node_2 = TextNode("Indeed it is", "text")
+        expected_result = ParentNode(tag="ol", children=[ParentNode(tag="li", children=[LeafNode(text_node.text)]),
+                                                         ParentNode(tag="li", children=[LeafNode(text_node_2.text)])])
+
+        actual_result = ordered_list_block_to_html(block)
+
+        self.assertEqual(actual_result, expected_result)
+
+    def test_ordered_list_block_to_html_3(self):
+        block = "# A Rich Tapestry of Lore"
+
+        with self.assertRaises(ValueError):
+            ordered_list_block_to_html(block)
+
+    def test_ordered_list_block_to_html_4(self):
+        block = "1. A **Rich** Tapestry of Lore"
+
+        text_node = TextNode("A ", "text")
+        text_node_2 = TextNode("Rich", "bold")
+        text_node_3 = TextNode(" Tapestry of Lore", "text")
+        expected_result = ParentNode(tag="ol", children=[ParentNode(tag="li", children=[LeafNode(text_node.text),
+                                                                                        LeafNode(text_node_2.text, tag="b"),
+                                                                                        LeafNode(text_node_3.text)])])
+        actual_result = ordered_list_block_to_html(block)
+
+        self.assertEqual(actual_result, expected_result)
+    
+    def test_ordered_list_block_to_html_3(self):
+        block = "1. A Rich Tapestry of Lore\n3. Indeed it is"
+
+        with self.assertRaises(ValueError):
+            ordered_list_block_to_html(block)
+
+    # =================================================================
     # ------------ TEST helper functions CHECK IF MARKDOWN HAS TITLE ------------
     # =================================================================
 
-    def test_markdown_has_title(self):
-        markdown = """###### The Unparalleled Majesty of "The Lord of the Rings"
+    def test_extract_title(self):
+        markdown = """# The Unparalleled Majesty of "The Lord of the Rings"
 
                         [Back Home](/)
 
@@ -507,7 +668,7 @@ class TestHTMLNode(unittest.TestCase):
                         > I think that many confuse 'applicability' with 'allegory'; but the one resides in the freedom of the reader, and the other in the purposed domination of the author."
                         """
         
-        expected_result = '###### The Unparalleled Majesty of "The Lord of the Rings"'
+        expected_result = '# The Unparalleled Majesty of "The Lord of the Rings"'
 
         result = extract_title(markdown)
 

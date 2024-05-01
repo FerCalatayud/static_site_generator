@@ -1,5 +1,7 @@
+# Python
 import unittest
 
+# Internal
 from htmlnode import HTMLNode, LeafNode, ParentNode
 from textnode import TextNode
 from helper import (split_nodes_delimiter, extract_markdown_images, extract_markdown_links, 
@@ -320,11 +322,6 @@ class TestHTMLNode(unittest.TestCase):
 
 
         self.assertEqual(matches, expected_result)
-
-    # TODO
-    # it might be missing a test for when the image tag is not closed but I already tried and didn't find
-    # a case where that happens. The solution does test for ir in the code but don't know when that is the case becase
-    # the function that substracts the images would not return the images and there fore never get to that case in code.
 
     # =================================================================
     # ------------ TEST helper functions SPLIT LINK NODES ------------

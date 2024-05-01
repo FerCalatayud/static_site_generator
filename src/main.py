@@ -3,9 +3,7 @@ import os
 import shutil
 
 # Internal
-from textnode import TextNode
-from htmlnode import HTMLNode, LeafNode
-from helper import (move_all_content, generate_page, generate_pages_recursive)
+from helper import (move_all_content, generate_pages_recursive)
 
 def main():
 
@@ -21,8 +19,6 @@ def main():
 
     generate_pages_recursive(path_content_dir, path_template, path_public_dir)
 
-    """generate_page(os.path.join(path_content_dir, "index.md"), 
-                  path_template, 
-                  os.path.join(path_public_dir, "index.html"))"""
+    print("JOB DONE, THANKS FOR TRUSTING ME WITH THE WORK.")
 
 main()

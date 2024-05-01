@@ -1,9 +1,13 @@
-from htmlnode import LeafNode, HTMLNode, ParentNode
-from textnode import TextNode
+# Python
 from enum import Enum
 import re
 import os
 import shutil
+
+# Internal
+from htmlnode import LeafNode, HTMLNode, ParentNode
+from textnode import TextNode
+
 
 class TextNodeType(Enum):
     TEXT = "text"
@@ -488,5 +492,3 @@ def generate_pages_recursive(from_path, template_path, dest_path):
         else:
             print(f"----> Recursion from ------>{from_path}<------- to  ------>{current_item_to_convert}<-------")
             generate_pages_recursive(current_item_to_convert, template_path, current_item_to_paste)
-
-        print("JOB DONE, THANKS FOR TRUSTING ME WITH THE WORK.")

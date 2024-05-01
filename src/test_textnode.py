@@ -1,5 +1,7 @@
+# Python
 import unittest
 
+# Internal
 from textnode import TextNode
 
 
